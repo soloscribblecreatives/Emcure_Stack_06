@@ -1,0 +1,320 @@
+body {
+    font-family:  "Inter", sans-serif;;
+}
+*, *::before, *::after {
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+h1, h2, h3, h4, h5, h6, p { margin: 0; font-family:  "Inter", sans-serif;}
+sup {
+    font-size: 1.1vw;
+    line-height: 1;
+    position: relative;
+    top: 0.37vw;
+}
+p {
+    line-height: normal;
+}
+section {
+    background-color: #B6B6B6;
+    padding: 22px;
+    height: 100vh;
+}
+.secwrap {
+  background-color: #fff;
+    height: 100%;
+    position: relative;
+    box-shadow: 0px 1px 13px 0px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+ul li {
+    list-style-type: none;
+    font-family:  "Inter", sans-serif;;
+}
+.secLogo {
+    width: 62%;
+    margin: 0 auto;
+    margin-right: 22%;
+}
+.secLogo img {
+    width: 100%;
+}
+
+.referlink {
+    background-color: #c6206c;
+    color: #FFF;
+    font-size: 1.46vw;
+    line-height: 1;
+    font-weight: 600;
+    padding: 14px 25px;
+    border-radius: 11px 0 0 11px;
+    -webkit-border-radius: 11px 0 0 11px;
+    -moz-border-radius: 11px 0 0 11px;
+    -ms-border-radius: 11px 0 0 11px;
+    -o-border-radius: 11px 0 0 11px;
+    text-decoration: none;
+    position: absolute;
+    bottom: 96px;
+    right: 0;
+}
+
+.popup-wrapper {
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+    position: fixed;
+    z-index: 999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(6 6 6 / 30%);
+    display: flex;
+    align-items: center;
+}
+.popup-container {
+    background-color: #fff;
+    margin: auto;
+    padding: 50px 20px 50px 0;
+    width: 65%;
+    border-radius: 34px;
+    -webkit-border-radius: 34px;
+    -moz-border-radius: 34px;
+    -ms-border-radius: 34px;
+    -o-border-radius: 34px;
+    transform: scale(0.3);
+    transition: all 0.3s ease-in-out;
+    -webkit-transition: all 0.3s ease-in-out;
+    -moz-transition: all 0.3s ease-in-out;
+    -ms-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+}
+.popup-wrapper:target {
+    visibility: visible;
+    opacity: 1;
+}
+.popup-wrapper:target .popup-container {
+    transform: scale(1);
+}
+.popup-content {
+    padding: 0 0 0 60px;
+}
+.popup-head { position: relative;}
+.popup-head h3 {
+    font-size: 3.2vw;
+    line-height: 1.2;
+    font-weight: 700;
+    margin-bottom: 40px;
+    padding-left: 70px;
+}
+.popup-head:before {
+    position: absolute;
+    content: "";
+    left: 0; 
+    top: 0;
+    width: 30px;
+    height: 100%;
+    background-color: #c6206c;
+}
+.popup-head:after {
+    position: absolute;
+    content: "";
+    left: 35px; 
+    top: 0;
+    width: 17px;
+    height: 100%;
+    background-color: #c6206c;
+}
+.popup-content ul {
+    padding-left: 0px;
+    padding-bottom: 35px;
+}
+.popup-content ul li {
+    font-size: 2.32vw;
+    line-height: 1;
+    font-weight: 600;
+    color: #000;
+    margin: 20px 0;
+    position: relative;
+    display: block;
+    padding: 0 0 0 25px;
+    font-family:  "Inter", sans-serif;;
+}
+.popup-content ul li:before {
+    position: absolute;
+    content: "";
+    left: 0;
+    left: 0;
+    top: 5px;
+    background-color: #EA2128;
+    width: 10px;
+    height: 10px;
+    border-radius: 16px;
+    -webkit-border-radius: 16px;
+    -moz-border-radius: 16px;
+    -ms-border-radius: 16px;
+    -o-border-radius: 16px;
+}
+.popup-container ol {
+    padding-left: 20px;
+    padding-bottom: 25px;
+}
+.popup-container ol li, .popup-container p {
+    font-size: 1.5vw;
+    line-height: 1.3;
+    font-weight: 400;
+    color: #000;
+    margin-bottom: 5px;
+    font-family:  "Inter", sans-serif;;
+}
+.popup-container ol li { padding: 8px 10px;}
+.popup-container p { margin-bottom: 10px;}
+.popup-container a.close{
+    color: #BABABA;
+    font-size: 45px;
+    font-weight: 300;
+    background: none;
+    padding: 0;
+    margin: 0;
+    text-decoration: none;
+    position: absolute;
+    right: 28px;
+    top: 20px;
+    z-index: 999;
+}
+
+.popup-container a.close:hover{
+  color:#333;
+}
+
+.popup-container span:hover,
+.popup-container span:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.popup-wrapper:target{
+  visibility: visible;
+  opacity: 1;
+ 
+}
+
+.img-popup .popup-container {
+    background-color: #ca1623;
+}
+
+.img-popup .popup-head:before, .img-popup .popup-head:after {
+    background-color: #fff;
+}
+
+.img-popup .popup-head {
+    height: 30px;
+    position: absolute;
+    left: 0;
+    background: #EA2128;
+}
+
+.vert-scroll {
+    height: 85%;
+    overflow-y: scroll;
+}
+.pt-0 {
+    padding-top: 0;
+}
+.text-white {
+    color: #fff;
+}
+a, a:hover, a:visited, a:focus {
+    text-decoration: none;
+}
+
+.vert-scroll::-webkit-scrollbar {width: 8px;background: #f7f7f7;} /* width */
+
+.vert-scroll:-webkit-scrollbar-track {background: #f7f7f7;border-radius: 5px;} /* Track */
+.vert-scroll:scrollbar-track {background: #f7f7f7;border-radius: 5px;} /* Track */
+
+.vert-scroll::-webkit-scrollbar-thumb {background: #888; border-radius: 5px;} /* Handle */
+.vert-scroll::scrollbar-thumb {background: #888; border-radius: 5px;} /* Handle */
+
+.vert-scroll::-webkit-scrollbar-thumb:hover  {background: #555; } /* Handle on hover */
+
+.img-popup .popup-content {
+    padding: 0px 40px 0px 50px;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    margin: 40px;
+    border-radius: 45px;
+}
+
+.content-topHead {
+    text-align: center;
+    padding: 0 15px;
+    border-right: 5px solid #C3131B;
+    border-left: 5px solid #C3131B;
+    margin-bottom: 50px;
+}
+.content-topHead h2 {
+    font-size: 3vw;
+    font-weight: 600;
+    color: #1C789E;
+    line-height: 1.4;
+}
+.content-topHead sup {
+    font-size: medium;
+    font-weight: 700;
+    line-height: normal;
+}
+
+img {
+    width: 100%;
+}
+
+.top-right-logo {
+    width: 110px;
+    position: absolute;
+    top: 40px;
+    right: 30px;
+}
+
+.footer {
+    position: absolute;
+    bottom: -4px;
+    width: 1080px;
+}
+
+/*------------------------video popup-----------------------------*/
+.video-container {
+    padding: 50px 20px;
+    width: 85%;
+}
+.video-container .popup-content {
+     padding: 0; 
+}
+
+.video-container a.close{
+    top: 0;
+}
+
+/*------------------------slide popup-----------------------------*/
+
+
+
+/*-----------------------reference block--------------------------*/
+
+
+.ref-text{
+    width: 98%;
+    margin: 0 auto;
+    position: absolute;
+    bottom: 28px;
+    left: 0;
+    right: 0;
+  }
+  .ref{
+    font-size: 10px;
+    color: #000;
+    line-height: 1.3;
+    font-weight: 400;
+  }

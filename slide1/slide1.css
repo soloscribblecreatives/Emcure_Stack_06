@@ -1,11 +1,82 @@
-* {
-	margin: 0px;
-	padding: 0px;
+.content-main-wrap {
+  display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: calc(100% - 40%);
+}
+.content-wrap {
+  width: 98%;
+  margin: 0 auto;
+  /* display: flex; */
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  position: relative;
 }
 
-#asset1 {
+.secwrap {
+    background: url(slide1-background.jpg) no-repeat center / cover;
+}
+.right-top-logo{
+  width: 13%;
     position: absolute;
-    width: 1080px;
-    height: 810px;
-	z-index: 1;
+    right: 2%;
+    top: 5%;
+}
+.middel-top-product{
+  width: 26%;
+    margin: 0 auto;
+    margin-left: 35%;
+    margin-bottom: 1%;
+}
+.middel-product{
+  width: 36%;
+    /* margin: 0 0 0 5%; */
+    margin: 0 auto;
+    margin-left: 35%;
+}
+.ref-text{
+  width: 95%;
+  margin: 0 auto;
+  position: absolute;
+  bottom: 15px;
+  left: 0;
+  right: 0;
+}
+
+.nausea-block {
+  position: absolute;
+  left: 73px;
+  right: 0;
+  margin: 0 auto;
+  width: 87px;
+  top: 60.7%;
+}
+
+.abdominal-pain-block {
+  position: absolute;
+  left: 70px;
+  right: 0;
+  margin: 0 auto;
+  width: 17%;
+  top: 67%;
+}
+
+.diarrhea-block {
+  position: absolute;
+  left: 69px;
+  right: 0;
+  margin: 0 auto;
+  width: 9%;
+  bottom: 23.1%;
+}
+
+.constipation-block {
+  position: absolute;
+  left: 70px;
+  right: 0;
+  margin: 0 auto;
+  bottom: 16%;
+  width: 14%;
 }
