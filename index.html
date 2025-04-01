@@ -1,60 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="cache-control" content="max-age=200" />
-    <meta name="viewport" content="initial-scale=1, maximum-scale=1" />
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Femzact</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="global.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="custom.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="animate.css" media="screen" />
-    <script src="jquery.min.js" type="text/javascript" language="javascript"></script>
-    <script src="jquery.mobile.custom.min.js" type="text/javascript" language="javascript"></script>
-    <script src="jquery.touchSwipe.min.js" type="text/javascript" language="javascript"></script>
-    <script src="gsap.min.js" type="text/javascript" language="javascript"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Ball Game</title>
+    <style>
+        body { margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f0f0; }
+        canvas { background: white; display: block; }
+        .buttons { position: absolute; bottom: 0; width: 1024px; display: flex; }
+        button { width: 341.3px; height: 50px; font-size: 18px; border: none; cursor: pointer; }
+        #nsaids { background: red; color: white; }
+        #coxibs { background: blue; color: white; }
+        #proxym { background: green; color: white; }
+    </style>
 </head>
-
 <body>
-    <div id="wrapper" rel="1">
-        <div class="slide_arrow">
-            <div class="left_arrow"><img src="left_arrow.png" alt="previous icon" width="23" height="23"></div>
-            <div class="right_arrow"><img src="right_arrow.png" alt="next icon" width="23" height="23"></div>
-        </div>
-        <div id="main_content"></div>
-        <div class="reference active">
-            <div class="box">
-                <div class="slide_jumper">    
-                    <div class="slides"><img src="thumbs/01.png" alt="screen-1"></div>
-                    <div class="slides"><img src="thumbs/02.png" alt="screen-2"></div>
-                    <div class="slides"><img src="thumbs/03.png" alt="screen-3"></div>
-                    <div class="slides"><img src="thumbs/04.png" alt="screen-4"></div>
-                    <div class="slides"><img src="thumbs/05.png" alt="screen-5"></div>
-                    <div class="slides"><img src="thumbs/06.png" alt="screen-6"></div>
-                   
-                </div>
-            </div>
-            <div class="box_btn"></div>
-        </div>
+    <canvas id="gameCanvas" width="1024" height="768"></canvas>
+    <div class="buttons">
+        <button id="nsaids">Other NSaids</button>
+        <button id="coxibs">Coxibs</button>
+        <button id="proxym">Proxym</button>
     </div>
-    <div id="myconsole"></div>
-    <div id="click_through"> </div>
-    <script src="slide-gsap-anim.js" type="text/javascript" language="javascript"></script>
-    <script src="global.js" type="text/javascript" language="javascript"></script>
     <script>
-        $(document).ready(function () {
-            // jQuery(".next").bind(event, function(){
-            //     document.location = 'VoltarenVAsb/VoltarenVAsb.html';
-            //     });
-            var selectedContentPath = 'slide1/';
-            //  document.getElementById("main_content").innerHTML='<object type="text/html" width="1024px" height="768px" data="'+selectedContentPath+"Dlight1.htm"+'"></object>';
-            $("#main_content").html('<link rel="stylesheet" type="text/css" href="slide1/slide1.css" media="screen"/><section id=sec1><div class=secwrap><div class=right-top-logo><img alt=""src=slide1/emcure-logo.svg></div><div class=content-main-wrap><div class=content-wrap><div class=middel-top-product><img alt=""src=slide1/middle-top-text.png></div><div class=middel-product><img alt=""src=slide1/middle-text.png></div></div><div class=sec-content><div class=nausea-block><img alt=""src=slide1/nausea.svg></div><div class=abdominal-pain-block><img alt=""src=slide1/abdominal-pain.svg></div><div class=diarrhea-block><img alt=""src=slide1/diarrhea.svg></div><div class=constipation-block><img alt=""src=slide1/constipation.svg></div></div><div class=ref-text><p class=ref>Reference: 1. Gereklioglu C, Asma S, Korur A, Erdogan F, Kut A. Medication adherence to oral iron therapy in patients with iron deficiency anemia. Pak J Med Sci. 2016;32(3):604-607, doi: http://dx.doi.org/10.12669/pjms.323.9799</div></div></div></section>');
-        });
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        let redBalls = [];
+        let blackBalls = [];
+        
+        class Ball {
+            constructor(x, y, radius, color, speedY) {
+                this.x = x;
+                this.y = y;
+                this.radius = radius;
+                this.color = color;
+                this.speedX = (Math.random() - 0.5) * 2;
+                this.speedY = speedY;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.x < this.radius || this.x > canvas.width - this.radius) this.speedX *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+        
+        function spawnRedBalls() {
+            setInterval(() => {
+                redBalls.push(new Ball(Math.random() * canvas.width, 0, 20, "red", 2));
+            }, 500);
+        }
+        
+        function updateGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            redBalls.forEach((ball, i) => {
+                ball.update();
+                ball.draw();
+                if (ball.y > canvas.height) redBalls.splice(i, 1);
+            });
+            blackBalls.forEach((ball, i) => {
+                ball.update();
+                ball.draw();
+                if (ball.y < 0) blackBalls.splice(i, 1);
+                
+                redBalls.forEach((red, j) => {
+                    let dx = red.x - ball.x;
+                    let dy = red.y - ball.y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < red.radius + ball.radius) {
+                        if (ball.effect === "fade") redBalls.splice(j, 1);
+                        if (ball.effect === "shrink" && red.radius > 5) red.radius -= 5;
+                        if (ball.effect === "deflect") red.speedY = -2;
+                        blackBalls.splice(i, 1);
+                    }
+                });
+            });
+            requestAnimationFrame(updateGame);
+        }
+        
+        function shootBlackBalls(effect) {
+            for (let i = 0; i < 5; i++) {
+                blackBalls.push(new Ball(Math.random() * canvas.width, canvas.height, 10, "black", -5));
+                blackBalls[blackBalls.length - 1].effect = effect;
+            }
+        }
+        
+        document.getElementById("proxym").addEventListener("click", () => shootBlackBalls("fade"));
+        document.getElementById("coxibs").addEventListener("click", () => shootBlackBalls("shrink"));
+        document.getElementById("nsaids").addEventListener("click", () => shootBlackBalls("deflect"));
+        
+        spawnRedBalls();
+        updateGame();
     </script>
 </body>
-
 </html>
