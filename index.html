@@ -3,43 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Ball Game</title>
+    <title>Ball Interaction Game</title>
     <style>
-        body { margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f0f0; }
-        canvas { background: white; display: block; }
-        .buttons { position: absolute; bottom: 0; width: 1024px; display: flex; }
-        button { width: 341.3px; height: 50px; font-size: 18px; border: none; cursor: pointer; }
-        #nsaids { background: red; color: white; }
-        #coxibs { background: blue; color: white; }
-        #proxym { background: green; color: white; }
+        body { text-align: center; margin: 0; overflow: hidden; }
+        canvas { position: absolute; background: #eee; display: block; margin: auto; z-index: 5; }
+        .controls { position: absolute; bottom: 0; width: 1024px; display: flex; }
+        button { flex: 1; height: 50px; font-size: 18px; cursor: pointer; text-align: center; margin: auto; z-index: 10; }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas" width="1024" height="768"></canvas>
-    <div class="buttons">
-        <button id="nsaids">Other NSaids</button>
+    <div class="controls">
+        <button id="nsaids">NSaids</button>
         <button id="coxibs">Coxibs</button>
         <button id="proxym">Proxym</button>
     </div>
+
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         let redBalls = [];
         let blackBalls = [];
-        
+        const words = ["Renal risk", "CV Risk", "GI complication", "Efficacy"];
+
         class Ball {
-            constructor(x, y, radius, color, speedY) {
+            constructor(x, y, radius, color, speedX, speedY, type) {
                 this.x = x;
                 this.y = y;
                 this.radius = radius;
                 this.color = color;
-                this.speedX = (Math.random() - 0.5) * 2;
+                this.speedX = speedX;
                 this.speedY = speedY;
+                this.type = type;
+                this.word = words[Math.floor(Math.random() * words.length)];
             }
-            update() {
-                this.y += this.speedY;
+            move() {
                 this.x += this.speedX;
-                if (this.x < this.radius || this.x > canvas.width - this.radius) this.speedX *= -1;
+                this.y += this.speedY;
+                if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) {
+                    this.speedX *= -1;
+                }
+                if (this.y + this.radius > canvas.height) {
+                    this.y = this.radius;
+                }
             }
             draw() {
                 ctx.beginPath();
@@ -47,55 +53,67 @@
                 ctx.fillStyle = this.color;
                 ctx.fill();
                 ctx.closePath();
+                if (this.type === "red") {
+                    ctx.fillStyle = "black";
+                    ctx.font = "12px Arial";
+                    ctx.fillText(this.word, this.x - this.radius, this.y - this.radius - 5);
+                }
             }
         }
-        
+
         function spawnRedBalls() {
-            setInterval(() => {
-                redBalls.push(new Ball(Math.random() * canvas.width, 0, 20, "red", 2));
-            }, 500);
+            if (redBalls.length < 50) {
+                let x = Math.random() * canvas.width;
+                let speedX = (Math.random() - 0.5) * 2;
+                redBalls.push(new Ball(x, 0, 20, "red", speedX, 2, "red"));
+            }
         }
-        
+
+        function releaseBlackBalls(effect) {
+            for (let i = 0; i < 10; i++) {
+                let x = Math.random() * canvas.width;
+                blackBalls.push(new Ball(x, canvas.height - 10, 10, "black", 0, -3, effect));
+            }
+        }
+
         function updateGame() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            redBalls.forEach((ball, i) => {
-                ball.update();
-                ball.draw();
-                if (ball.y > canvas.height) redBalls.splice(i, 1);
-            });
-            blackBalls.forEach((ball, i) => {
-                ball.update();
-                ball.draw();
-                if (ball.y < 0) blackBalls.splice(i, 1);
-                
-                redBalls.forEach((red, j) => {
-                    let dx = red.x - ball.x;
-                    let dy = red.y - ball.y;
-                    let distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < red.radius + ball.radius) {
-                        if (ball.effect === "fade") redBalls.splice(j, 1);
-                        if (ball.effect === "shrink" && red.radius > 5) red.radius -= 5;
-                        if (ball.effect === "deflect") red.speedY = -2;
-                        blackBalls.splice(i, 1);
-                    }
-                });
-            });
-            requestAnimationFrame(updateGame);
+            redBalls.forEach(ball => ball.move());
+            blackBalls.forEach(ball => ball.move());
+            checkCollisions();
+            redBalls.forEach(ball => ball.draw());
+            blackBalls.forEach(ball => ball.draw());
         }
-        
-        function shootBlackBalls(effect) {
-            for (let i = 0; i < 5; i++) {
-                blackBalls.push(new Ball(Math.random() * canvas.width, canvas.height, 10, "black", -5));
-                blackBalls[blackBalls.length - 1].effect = effect;
+
+        function checkCollisions() {
+            for (let i = blackBalls.length - 1; i >= 0; i--) {
+                let bBall = blackBalls[i];
+                for (let j = redBalls.length - 1; j >= 0; j--) {
+                    let rBall = redBalls[j];
+                    let dx = bBall.x - rBall.x;
+                    let dy = bBall.y - rBall.y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < bBall.radius + rBall.radius) {
+                        if (bBall.type === "proxym") {
+                            redBalls.splice(j, 1);
+                        } else if (bBall.type === "coxibs") {
+                            rBall.radius = Math.max(5, rBall.radius - 5);
+                        } else if (bBall.type === "nsaids") {
+                            rBall.speedX *= -1;
+                        }
+                        blackBalls.splice(i, 1);
+                        break;
+                    }
+                }
             }
         }
-        
-        document.getElementById("proxym").addEventListener("click", () => shootBlackBalls("fade"));
-        document.getElementById("coxibs").addEventListener("click", () => shootBlackBalls("shrink"));
-        document.getElementById("nsaids").addEventListener("click", () => shootBlackBalls("deflect"));
-        
-        spawnRedBalls();
-        updateGame();
+
+        document.getElementById("proxym").addEventListener("click", () => releaseBlackBalls("proxym"));
+        document.getElementById("coxibs").addEventListener("click", () => releaseBlackBalls("coxibs"));
+        document.getElementById("nsaids").addEventListener("click", () => releaseBlackBalls("nsaids"));
+
+        setInterval(spawnRedBalls, 500);
+        setInterval(updateGame, 16);
     </script>
 </body>
 </html>
