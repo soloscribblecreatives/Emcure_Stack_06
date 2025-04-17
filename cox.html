@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Falling Balls Game</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      background: #f0f0f0;
+    }
+    .controls {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+    }
+    .control-button {
+      width: 341.3px;
+      height: 50px;
+      font-size: 18px;
+      flex-grow: 1;
+      text-align: center;
+      line-height: 50px;
+      background-color: #333;
+      color: white;
+      cursor: pointer;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+<canvas id="gameCanvas" width="1024" height="768"></canvas>
+<div class="controls">
+  <div class="control-button" id="nsaids">NSaids</div>
+  <div class="control-button" id="coxibs">Coxibs</div>
+  <div class="control-button" id="proxym">Proxym</div>
+</div>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const width = canvas.width;
+const height = canvas.height;
+
+const imagePaths = {
+  'CV Risk': 'tennis.png',
+  'Renal Risk': 'golf.png',
+  'Pain': 'basketball.png',
+  'CI Complications': 'soccer.png'
+};
+
+const images = {};
+let balls = [];
+let projectiles = [];
+
+// Load images
+for (let key in imagePaths) {
+  const img = new Image();
+  img.src = imagePaths[key];
+  images[key] = img;
+}
+
+function randomBetween(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+function spawnBall() {
+  const types = Object.keys(images);
+  const type = types[Math.floor(Math.random() * types.length)];
+  balls.push({
+    x: randomBetween(0, width - 100),
+    y: -100,
+    dx: randomBetween(-0.5, 0.5),
+    dy: randomBetween(0.5, 1.5),
+    type: type,
+    width: 100,
+    height: 100,
+    alive: true
+  });
+}
+
+function spawnProjectile(filterFn) {
+  projectiles.push({
+    x: randomBetween(0, width),
+    y: height - 50,
+    dy: -3,
+    radius: 10,
+    color: 'black',
+    filterFn
+  });
+}
+
+function update() {
+  ctx.clearRect(0, 0, width, height);
+
+  balls.forEach(ball => {
+    if (!ball.alive) return;
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+    ctx.drawImage(images[ball.type], ball.x, ball.y, ball.width, ball.height);
+  });
+
+  projectiles.forEach((proj, i) => {
+    proj.y += proj.dy;
+    ctx.beginPath();
+    ctx.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
+    ctx.fillStyle = proj.color;
+    ctx.fill();
+
+    balls.forEach(ball => {
+      if (!ball.alive) return;
+      const hit = proj.x >= ball.x && proj.x <= ball.x + ball.width &&
+                  proj.y >= ball.y && proj.y <= ball.y + ball.height;
+      if (hit && proj.filterFn(ball)) {
+        ball.alive = false;
+      }
+    });
+  });
+
+  // Clean up off-screen projectiles
+  projectiles = projectiles.filter(p => p.y + p.radius > 0);
+  balls = balls.filter(b => b.y < height && b.alive);
+}
+
+function loop() {
+  update();
+  requestAnimationFrame(loop);
+}
+
+setInterval(spawnBall, 1000);
+loop();
+
+// Click handlers
+
+document.getElementById('proxym').addEventListener('click', () => {
+  spawnProjectile(() => true); // Hits all
+});
+
+document.getElementById('coxibs').addEventListener('click', () => {
+  spawnProjectile(ball => ball.type === 'Pain' || ball.type === 'Renal Risk');
+});
+
+document.getElementById('nsaids').addEventListener('click', () => {
+  spawnProjectile(ball => ball.type === 'CV Risk' || ball.type === 'Renal Risk');
+});
+</script>
+</body>
+</html>

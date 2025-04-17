@@ -1,101 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Ball Game</title>
-    <style>
-        body { margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f0f0; }
-        canvas { background: white; display: block; }
-        .buttons { position: absolute; bottom: 0; width: 1024px; display: flex; }
-        button { width: 341.3px; height: 50px; font-size: 18px; border: none; cursor: pointer; }
-        #nsaids { background: red; color: white; }
-        #coxibs { background: blue; color: white; }
-        #proxym { background: green; color: white; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Proxym ER</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #f0f0f0;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+      background: #ffffff;
+    }
+    #buttons {
+      width: 1024px;
+      display: flex;
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .game-button {
+      width: 341.3px;
+      height: 60px;
+      border: none;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="1024" height="768"></canvas>
-    <div class="buttons">
-        <button id="nsaids">Other NSaids</button>
-        <button id="coxibs">Coxibs</button>
-        <button id="proxym">Proxym</button>
-    </div>
-    <script>
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-        let redBalls = [];
-        let blackBalls = [];
-        
-        class Ball {
-            constructor(x, y, radius, color, speedY) {
-                this.x = x;
-                this.y = y;
-                this.radius = radius;
-                this.color = color;
-                this.speedX = (Math.random() - 0.5) * 2;
-                this.speedY = speedY;
-            }
-            update() {
-                this.y += this.speedY;
-                this.x += this.speedX;
-                if (this.x < this.radius || this.x > canvas.width - this.radius) this.speedX *= -1;
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-                ctx.closePath();
-            }
+  <canvas id="gameCanvas" width="1024" height="768"></canvas>
+  <div id="buttons">
+    <button class="game-button" id="nsaids">NSaids</button>
+    <button class="game-button" id="coxibs">Coxibs</button>
+    <button class="game-button" id="proxym">Proxym</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+
+    const ballImages = {
+      "CV Risk": "CV-Risk.png",
+      "Renal Risk": "Renal-Risk.png",
+      "Pain": "Pain.png",
+      "GI Comp": "GI-Comp.png"
+    };
+
+    const ballClasses = Object.keys(ballImages);
+
+    const balls = [];
+    const bullets = [];
+
+    // Load images
+    const loadedImages = {};
+    for (let key in ballImages) {
+      const img = new Image();
+      img.src = ballImages[key];
+      loadedImages[key] = img;
+    }
+
+    // Ball generator
+function spawnBall() {
+  const type = ballClasses[Math.floor(Math.random() * ballClasses.length)];
+  const img = loadedImages[type];
+
+  const desiredWidth = 150;
+
+  // Wait until the image is loaded to get natural dimensions
+  if (img.complete) {
+    const aspectRatio = img.height / img.width;
+    const desiredHeight = desiredWidth * aspectRatio;
+
+    balls.push({
+      x: Math.random() * (canvasWidth - desiredWidth),
+      y: -desiredHeight,
+      vx: (Math.random() - 0.5) * 2,
+      vy: 1 + Math.random() * 1,
+      type: type,
+      width: desiredWidth,
+      height: desiredHeight,
+      opacity: 1
+    });
+  } else {
+    // Retry after it's loaded
+    img.onload = () => spawnBall();
+  }
+}
+
+    setInterval(spawnBall, 1000);
+
+    // Bullet shooter
+    function shootBullets(mode) {
+      for (let i = 0; i < 20; i++) {
+        bullets.push({
+          x: Math.random() * canvasWidth,
+          y: canvasHeight - 60,
+          vy: -5,
+          size: 10,
+          mode: mode
+        });
+      }
+    }
+
+    document.getElementById('proxym').onclick = () => shootBullets('proxym');
+    document.getElementById('coxibs').onclick = () => shootBullets('coxibs');
+    document.getElementById('nsaids').onclick = () => shootBullets('nsaids');
+
+    function update() {
+      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+      // Draw and move balls
+      balls.forEach((ball, i) => {
+        ball.x += ball.vx;
+        ball.y += ball.vy;
+        if (ball.y > canvasHeight) balls.splice(i, 1);
+        if (ball.opacity > 0) {
+          ctx.globalAlpha = ball.opacity;
+          ctx.drawImage(loadedImages[ball.type], ball.x, ball.y, ball.width, ball.height);
+          ctx.globalAlpha = 1;
         }
-        
-        function spawnRedBalls() {
-            setInterval(() => {
-                redBalls.push(new Ball(Math.random() * canvas.width, 0, 20, "red", 2));
-            }, 500);
-        }
-        
-        function updateGame() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            redBalls.forEach((ball, i) => {
-                ball.update();
-                ball.draw();
-                if (ball.y > canvas.height) redBalls.splice(i, 1);
-            });
-            blackBalls.forEach((ball, i) => {
-                ball.update();
-                ball.draw();
-                if (ball.y < 0) blackBalls.splice(i, 1);
-                
-                redBalls.forEach((red, j) => {
-                    let dx = red.x - ball.x;
-                    let dy = red.y - ball.y;
-                    let distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < red.radius + ball.radius) {
-                        if (ball.effect === "fade") redBalls.splice(j, 1);
-                        if (ball.effect === "shrink" && red.radius > 5) red.radius -= 5;
-                        if (ball.effect === "deflect") red.speedY = -2;
-                        blackBalls.splice(i, 1);
-                    }
-                });
-            });
-            requestAnimationFrame(updateGame);
-        }
-        
-        function shootBlackBalls(effect) {
-            for (let i = 0; i < 5; i++) {
-                blackBalls.push(new Ball(Math.random() * canvas.width, canvas.height, 10, "black", -5));
-                blackBalls[blackBalls.length - 1].effect = effect;
+      });
+
+      // Move and draw bullets
+      bullets.forEach((bullet, i) => {
+        bullet.y += bullet.vy;
+        ctx.fillStyle = "black";
+        ctx.beginPath();
+        ctx.arc(bullet.x, bullet.y, bullet.size / 1, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Collision with balls
+        balls.forEach((ball, j) => {
+          if (ball.opacity <= 0) return;
+
+          const hit = bullet.x > ball.x && bullet.x < ball.x + ball.width &&
+                      bullet.y > ball.y && bullet.y < ball.y + ball.height;
+
+          if (hit) {
+            if (bullet.mode === 'proxym') {
+              ball.opacity = 0;
+            } else if (bullet.mode === 'coxibs' && (ball.type === 'Pain')) {
+              ball.opacity = 0;
+			  
+			//else if (bullet.mode === 'coxibs' && (ball.type === 'GI Comp' || ball.type === 'Renal Risk')) {
+            } else if (bullet.mode === 'coxibs' && (ball.type === 'Renal Risk')) {
+              ball.width = 120;
+              ball.height = 120;
+            } else if (bullet.mode === 'nsaids' && (ball.type === 'Pain')) {
+              ball.opacity = 0;
             }
-        }
-        
-        document.getElementById("proxym").addEventListener("click", () => shootBlackBalls("fade"));
-        document.getElementById("coxibs").addEventListener("click", () => shootBlackBalls("shrink"));
-        document.getElementById("nsaids").addEventListener("click", () => shootBlackBalls("deflect"));
-        
-        spawnRedBalls();
-        updateGame();
-    </script>
+          }
+        });
+
+        // Remove bullets that are out of screen
+        if (bullet.y < -10) bullets.splice(i, 1);
+      });
+
+      requestAnimationFrame(update);
+    }
+
+    update();
+  </script>
 </body>
 </html>
