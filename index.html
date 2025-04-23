@@ -1,175 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ball Drop Game</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Falling Balls Game</title>
   <style>
-    body {
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
       overflow: hidden;
+      width: 100%;
+      height: 100%;
+      background: #f0f0f0;
     }
-    canvas {
+    #gameCanvas {
+	  position: absolute;
       display: block;
-      background: #eef;
-    }
-    #game-container {
-      position: relative;
-      width: 1080px;
-      height: 810px;
       margin: auto;
+	  background: url(bg.png);
+	  background-size: 1080px;
     }
-    .footer {
+    #buttons {
       position: absolute;
-      bottom: 0;
+      bottom: 0px;
+      width: 1080px;
+      display: flex;
+      justify-content: space-between;
+    }
+    #NSaids, #Coxibs, #Proxym {
       width: 360px;
-      height: 50px;
-      text-align: center;
-      line-height: 50px;
-      background-color: #333;
-      color: #fff;
-      cursor: pointer;
+      height: 60px;
       font-size: 18px;
+      flex-grow: 1;
+      text-align: center;
+      line-height: 0px;
+      background-color: #444;
+	  border-left: 1px solid #222;
+	  border-bottom: none;
+	  border-top: none;
+      color: white;
+      cursor: pointer;
+      user-select: none;
     }
-    #nsaids {
-      left: 0;
-    }
-    #coxibs {
-      left: 360px;
-    }
-    #proxym {
-      right: 0;
-    }
+	#NSaids { background: #b01313; }
+    #Coxibs { background: #1e2f56; }
+    #Proxym { background: #536e0b; }
+
   </style>
 </head>
 <body>
-  <div id="game-container">
-    <canvas id="gameCanvas" width="1080" height="810"></canvas>
-    <div class="footer" id="nsaids">NSaids</div>
-    <div class="footer" id="coxibs">Coxibs</div>
-    <div class="footer" id="proxym">Proxym</div>
+  <canvas id="gameCanvas" width="1080" height="810"></canvas>
+  <div id="buttons">
+    <button id="NSaids" class="game-button">NSaids</button>
+    <button id="Coxibs" class="game-button">Coxibs</button>
+    <button id="Proxym" class="game-button">Proxym</button>
   </div>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    const ballImages = {
-      'CV Risk': 'cv-risk.png',
-      'Renal Risk': 'renal-risk.png',
-      'Pain': 'pain.png',
-      'GI Comp': 'gi-comp.png',
+    const ballImages = [
+      { src: 'cv-risk.png', className: 'CV Risk' },
+      { src: 'renal-risk.png', className: 'Renal Risk' },
+      { src: 'pain.png', className: 'Pain' },
+      { src: 'gi-comp.png', className: 'GI Comp' }
+    ];
+
+    const effectImages = {
+      NSaids: 'nsaids.png',
+      Coxibs: 'coxibs.png',
+      Proxym: 'proxym.png'
     };
-    const projectileImg = 'proxym.png';
 
-    const fallingBalls = [];
-    const projectiles = [];
+    const balls = [];
+    const effects = [];
 
-    class Ball {
-      constructor(type) {
-        this.type = type;
-        this.img = new Image();
-        this.img.src = ballImages[type];
-        this.width = 100;
-        this.height = 100;
-        this.x = Math.random() * (canvas.width - this.width);
-        this.y = -this.height;
-        this.speedY = 1 + Math.random();
-        this.speedX = Math.random() * 2 - 1;
-        this.opacity = 1;
-        this.scale = 1;
-      }
-      update() {
-        this.y += this.speedY;
-        this.x += this.speedX;
-        if (this.x < 0 || this.x + this.width > canvas.width) this.speedX *= -1;
-      }
-      draw() {
-        ctx.save();
-        ctx.globalAlpha = this.opacity;
-        ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
-        ctx.scale(this.scale, this.scale);
-        ctx.drawImage(this.img, -this.width / 2, -this.height / 2, this.width, this.height);
-        ctx.restore();
+    function createBall() {
+      const imgInfo = ballImages[Math.floor(Math.random() * ballImages.length)];
+      const img = new Image();
+      img.src = imgInfo.src;
+      const x = Math.random() * (canvas.width - 150);
+      const y = -200;
+      const dx = (Math.random() - 0.5) * 2; //2 is the level of randomness of the falling objects
+      const dy = 1 + Math.random(); //1 is the speed of the falling objects
+
+      balls.push({ img, x, y, dx, dy, width: 150, className: imgInfo.className, opacity: 1 });
+    }
+
+    function createEffect(x, y, type) {
+      for (let i = 0; i < 10; i++) { //10 is number of bullets fired
+        const dx = (Math.random() - 0.5) * 20; //X-axis scatter of bullets
+        const dy = (Math.random() - 1) * 10; //Y-axis speed of bullets
+        const img = new Image();
+        img.src = effectImages[type];
+        effects.push({ img, x, y, dx, dy, width: 40, opacity: 1, type }); //40 is the size of the bullets
       }
     }
 
-    class Projectile {
-      constructor(effect) {
-        this.x = Math.random() * canvas.width;
-        this.y = canvas.height;
-        this.width = 10;
-        this.height = 20;
-        this.speed = 5;
-        this.img = new Image();
-        this.img.src = projectileImg;
-        this.effect = effect;
-      }
-      update() {
-        this.y -= this.speed;
-      }
-      draw() {
-        ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
-      }
-    }
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    function spawnBall() {
-      const types = Object.keys(ballImages);
-      const type = types[Math.floor(Math.random() * types.length)];
-      fallingBalls.push(new Ball(type));
-    }
+      // Draw and update balls
+      balls.forEach((ball, index) => {
+        ball.x += ball.dx;
+        ball.y += ball.dy;
 
-    function launchProjectile(effect) {
-      projectiles.push(new Projectile(effect));
-    }
+        ctx.globalAlpha = ball.opacity;
+        ctx.drawImage(ball.img, ball.x, ball.y, ball.width, ball.img.height * (ball.width / ball.img.width));
+        ctx.globalAlpha = 1;
+      });
 
-    function detectCollisions() {
-      for (let p of projectiles) {
-        for (let b of fallingBalls) {
-          if (
-            p.x < b.x + b.width &&
-            p.x + p.width > b.x &&
-            p.y < b.y + b.height &&
-            p.y + p.height > b.y
-          ) {
-            if (p.effect === 'proxym') {
-              if (b.type === 'Pain') b.opacity = 0;
-              else b.scale *= 0.2;
-            } else if (p.effect === 'coxibs') {
-              if (b.type === 'Pain') b.opacity = 0;
-              else if (b.type === 'Renal Risk') b.scale *= 0.2;
-            } else if (p.effect === 'nsaids') {
-              if (b.type === 'Pain') b.opacity = 0;
+      // Draw and update effects
+      effects.forEach((effect, index) => {
+        effect.x += effect.dx;
+        effect.y += effect.dy;
+        effect.opacity = 1;
+
+        ctx.globalAlpha = effect.opacity;
+        ctx.drawImage(effect.img, effect.x, effect.y, effect.width, effect.width);
+        ctx.globalAlpha = 1;
+
+        // Collision detection
+        balls.forEach(ball => {
+          const distX = effect.x - ball.x;
+          const distY = effect.y - ball.y;
+          if (Math.abs(distX) < 95 && Math.abs(distY) < 95) { //95 is the area proximity upto which bullets affects the falling objects
+            if (ball.className === 'Pain') {       
+			  ball.width *= 0.80; //0.80 instantly shrinks the pain demon
+            }
+            if (effect.type === 'Proxym') {
+              if (ball.className !== 'Pain') {
+                ball.width *= 0.98; //0.98 gradually shrinks the pain demon
+              }
+            }
+            if (effect.type === 'Coxibs' && ball.className === 'Renal Risk') {
+              ball.width *= 0.98;
+              if (ball.width < 90) ball.width = 90; //Reduces Renal Risk from 150 to 90 only incase of coxibs
+            }
+			if (effect.type === 'Coxibs' && ball.className === 'CV Risk') {
+              if (ball.width < 130) ball.width *= 0.90; //If proxym reduces CV Risk to 130 then only Coxibs shrinks it
             }
           }
-        }
+        });
+      });
+
+      // Remove invisible effects or balls
+      for (let i = balls.length - 1; i >= 0; i--) {
+        if (balls[i].opacity <= 0.1 || balls[i].y > canvas.height) balls.splice(i, 1);
+      }
+      for (let i = effects.length - 1; i >= 0; i--) {
+        if (effects[i].opacity <= 0) effects.splice(i, 1);
       }
     }
 
-    function updateGame() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (let b of fallingBalls) {
-        b.update();
-        b.draw();
-      }
-      for (let p of projectiles) {
-        p.update();
-        p.draw();
-      }
-      detectCollisions();
-    }
-
-    setInterval(spawnBall, 1000);
     function gameLoop() {
-      updateGame();
+      if (Math.random() < 0.02) createBall(); //0.02 is frequency of falling objects
+      draw();
       requestAnimationFrame(gameLoop);
     }
 
-    gameLoop();
+    document.getElementById('NSaids').addEventListener('click', () => {
+      createEffect(180, canvas.height - 60, 'NSaids');
+    });
 
-    document.getElementById('proxym').addEventListener('click', () => launchProjectile('proxym'));
-    document.getElementById('coxibs').addEventListener('click', () => launchProjectile('coxibs'));
-    document.getElementById('nsaids').addEventListener('click', () => launchProjectile('nsaids'));
+    document.getElementById('Coxibs').addEventListener('click', () => {
+      createEffect(540, canvas.height - 60, 'Coxibs');
+    });
+
+    document.getElementById('Proxym').addEventListener('click', () => {
+      createEffect(900, canvas.height - 60, 'Proxym');
+    });
+
+    gameLoop();
   </script>
 </body>
 </html>
