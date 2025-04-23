@@ -3,193 +3,173 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Falling Balls Game</title>
+  <title>Ball Drop Game</title>
   <style>
-    body, html {
+    body {
       margin: 0;
-      padding: 0;
       overflow: hidden;
-      height: 100%;
-      background: #f0f0f0;
     }
-    #gameCanvas {
+    canvas {
       display: block;
-      margin: auto;
-background: url(bg.png);
-background-size: 1080px;
+      background: #eef;
     }
-    .button-container {
+    #game-container {
+      position: relative;
+      width: 1080px;
+      height: 810px;
+      margin: auto;
+    }
+    .footer {
       position: absolute;
       bottom: 0;
-      width: 1080px;
-      display: flex;
-      justify-content: space-between;
-    }
-    <!-- #nsaids, #coxibs, #proxym {
       width: 360px;
-      height: 60px;
-      font-size: 18px;
-      flex-grow: 1;
+      height: 50px;
       text-align: center;
       line-height: 50px;
-      background-color: #444;
-      color: white;
+      background-color: #333;
+      color: #fff;
       cursor: pointer;
-      user-select: none;
-    } -->	
-	#nsaids, #coxibs, #proxym {
-	  width: 360px;
-      height: 100px;
       font-size: 18px;
-      flex-grow: 1;
-      text-align: center;
-      line-height: 50px;
-      background-color: #fff;
-	  border: 1px solid #e3e3e3;
-      color: black;
-      cursor: pointer;
-      user-select: none;
-	}
+    }
+    #nsaids {
+      left: 0;
+    }
+    #coxibs {
+      left: 360px;
+    }
+    #proxym {
+      right: 0;
+    }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="1080" height="810"></canvas>
-  <div class="button-container">
-    <button id="nsaids"><img width="100px" src="proxym.png"/>NSaids</button>
-    <button id="coxibs"><img width="100px" src="proxym.png"/>Coxibs</button>
-    <button id="proxym"><img width="100px" src="proxym.png"/>Proxym</button>
+  <div id="game-container">
+    <canvas id="gameCanvas" width="1080" height="810"></canvas>
+    <div class="footer" id="nsaids">NSaids</div>
+    <div class="footer" id="coxibs">Coxibs</div>
+    <div class="footer" id="proxym">Proxym</div>
   </div>
 
   <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-    const images = {};
-    const imageSources = {
-      "CV Risk": "./cv-risk.png",
-      "Renal Risk": "./renal-risk.png",
-      "Pain": "./pain.png",
-      "GI Comp": "./gi-comp.png",
+    const ballImages = {
+      'CV Risk': 'cv-risk.png',
+      'Renal Risk': 'renal-risk.png',
+      'Pain': 'pain.png',
+      'GI Comp': 'gi-comp.png',
     };
+    const projectileImg = 'proxym.png';
 
-    const balls = [];
+    const fallingBalls = [];
     const projectiles = [];
 
-    function loadImages(callback) {
-      let loaded = 0;
-      const total = Object.keys(imageSources).length;
-      for (let key in imageSources) {
-        images[key] = new Image();
-        images[key].src = imageSources[key];
-        images[key].onload = () => {
-          loaded++;
-          if (loaded === total) callback();
-        };
+    class Ball {
+      constructor(type) {
+        this.type = type;
+        this.img = new Image();
+        this.img.src = ballImages[type];
+        this.width = 100;
+        this.height = 100;
+        this.x = Math.random() * (canvas.width - this.width);
+        this.y = -this.height;
+        this.speedY = 1 + Math.random();
+        this.speedX = Math.random() * 2 - 1;
+        this.opacity = 1;
+        this.scale = 1;
+      }
+      update() {
+        this.y += this.speedY;
+        this.x += this.speedX;
+        if (this.x < 0 || this.x + this.width > canvas.width) this.speedX *= -1;
+      }
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+        ctx.scale(this.scale, this.scale);
+        ctx.drawImage(this.img, -this.width / 2, -this.height / 2, this.width, this.height);
+        ctx.restore();
       }
     }
 
-	function createBall() {
-	  const classes = Object.keys(images);
-	  const type = classes[Math.floor(Math.random() * classes.length)];
-	  const img = images[type];
-	  const width = 150;
-	  const aspectRatio = img.naturalHeight / img.naturalWidth;
-	  const height = width * aspectRatio;
-
-	balls.push({
-      x: Math.random() * (canvas.width - width),
-      y: -height,
-      dx: (Math.random() - 0.5) * 2,
-      dy: 3 + Math.random(), //3 is the speed of the objects falling
-      className: type,
-      width: width,
-      height: height,
-      opacity: 1
-	  });
-	}
-
-    function createProjectile(source) {
-      for (let i = 0; i < 5; i++) {
-        projectiles.push({
-          x: Math.random() * canvas.width,
-          y: canvas.height - 60,
-          dy: -3 - Math.random() * 2,
-          origin: source,
-        });
+    class Projectile {
+      constructor(effect) {
+        this.x = Math.random() * canvas.width;
+        this.y = canvas.height;
+        this.width = 10;
+        this.height = 20;
+        this.speed = 5;
+        this.img = new Image();
+        this.img.src = projectileImg;
+        this.effect = effect;
+      }
+      update() {
+        this.y -= this.speed;
+      }
+      draw() {
+        ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
       }
     }
 
-    function updateBalls() {
-      for (let ball of balls) {
-        ball.x += ball.dx;
-        ball.y += ball.dy;
-      }
+    function spawnBall() {
+      const types = Object.keys(ballImages);
+      const type = types[Math.floor(Math.random() * types.length)];
+      fallingBalls.push(new Ball(type));
     }
 
-    function updateProjectiles() {
+    function launchProjectile(effect) {
+      projectiles.push(new Projectile(effect));
+    }
+
+    function detectCollisions() {
       for (let p of projectiles) {
-        p.y += p.dy;
-      }
-    }
-
-    function checkCollisions() {
-      projectiles.forEach((p) => {
-        balls.forEach((ball) => {
+        for (let b of fallingBalls) {
           if (
-            p.x > ball.x &&
-            p.x < ball.x + ball.width &&
-            p.y > ball.y &&
-            p.y < ball.y + ball.height
+            p.x < b.x + b.width &&
+            p.x + p.width > b.x &&
+            p.y < b.y + b.height &&
+            p.y + p.height > b.y
           ) {
-            if (ball.className === "Pain") {
-              ball.opacity = 0;
-            } else if (p.origin === "proxym") {
-              ball.width *= 0.8;
-              ball.height *= 0.8;
-            } else if (p.origin === "coxibs" && ball.className === "Renal Risk") {
-              ball.width *= 0.6;
-              ball.height *= 0.6;
+            if (p.effect === 'proxym') {
+              if (b.type === 'Pain') b.opacity = 0;
+              else b.scale *= 0.2;
+            } else if (p.effect === 'coxibs') {
+              if (b.type === 'Pain') b.opacity = 0;
+              else if (b.type === 'Renal Risk') b.scale *= 0.2;
+            } else if (p.effect === 'nsaids') {
+              if (b.type === 'Pain') b.opacity = 0;
             }
           }
-        });
-      });
-    }
-
-    function drawBalls() {
-      for (let ball of balls) {
-        ctx.globalAlpha = ball.opacity;
-        ctx.drawImage(images[ball.className], ball.x, ball.y, ball.width, ball.height);
-        ctx.globalAlpha = 1;
+        }
       }
     }
 
-    function drawProjectiles() {
-      ctx.fillStyle = "black";
-      for (let p of projectiles) {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    function gameLoop() {
+    function updateGame() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      updateBalls();
-      updateProjectiles();
-      checkCollisions();
-      drawBalls();
-      drawProjectiles();
+      for (let b of fallingBalls) {
+        b.update();
+        b.draw();
+      }
+      for (let p of projectiles) {
+        p.update();
+        p.draw();
+      }
+      detectCollisions();
+    }
+
+    setInterval(spawnBall, 1000);
+    function gameLoop() {
+      updateGame();
       requestAnimationFrame(gameLoop);
     }
 
-    document.getElementById("proxym").onclick = () => createProjectile("proxym");
-    document.getElementById("coxibs").onclick = () => createProjectile("coxibs");
-    document.getElementById("nsaids").onclick = () => createProjectile("nsaids");
+    gameLoop();
 
-    loadImages(() => {
-      setInterval(createBall, 800);
-      gameLoop();
-    });
+    document.getElementById('proxym').addEventListener('click', () => launchProjectile('proxym'));
+    document.getElementById('coxibs').addEventListener('click', () => launchProjectile('coxibs'));
+    document.getElementById('nsaids').addEventListener('click', () => launchProjectile('nsaids'));
   </script>
 </body>
 </html>

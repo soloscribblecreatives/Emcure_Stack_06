@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Falling Ball Game</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      background: #f0f0f0;
+    }
+    #gameCanvas {
+	  position: absolute;
+      display: block;
+      margin: auto;
+	  background: url(bg.png);
+	  background-size: 1080px;
+    }
+    .button-container {
+      position: absolute;
+      bottom: 0px;
+      width: 1080px;
+      display: flex;
+      justify-content: space-between;
+    }
+    #nsaids, #coxibs, #proxym {
+      width: 360px;
+      height: 60px;
+      font-size: 18px;
+      flex-grow: 1;
+      text-align: center;
+      line-height: 0px;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="1080" height="810"></canvas>
+  <div class="button-container">
+    <button id="nsaids">NSaids</button>
+    <button id="coxibs">Coxibs</button>
+    <button id="proxym">Proxym</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const ballImages = {
+      'CV Risk': 'cv-risk.png',
+      'Renal Risk': 'renal-risk.png',
+      'Pain': 'pain.png',
+      'GI Comp': 'gi-comp.png'
+    };
+
+    const balls = [];
+    const particles = [];
+
+class Ball {
+  constructor(type) {
+    this.type = type;
+    this.image = new Image();
+    this.image.src = ballImages[type];
+    this.width = 150;
+    this.height = 150; // Temporary default, will be updated on image load
+    this.x = Math.random() * (canvas.width - this.width);
+    this.y = -this.height;
+    this.vx = (Math.random() - 0.5) * 2;
+    this.vy = 2 + Math.random(); // Speed of the falling balls
+    this.opacity = 1;
+    this.scale = 1;
+
+    // When image loads, set height to preserve aspect ratio
+    this.image.onload = () => {
+      const aspectRatio = this.image.naturalHeight / this.image.naturalWidth;
+      this.height = this.width * aspectRatio;
+    };
+  }
+
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+  }
+
+  draw() {
+    ctx.globalAlpha = this.opacity;
+    ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+    ctx.globalAlpha = 1;
+  }
+}
+
+
+    class Particle {
+      constructor(x, y, mode) {
+        this.x = x;
+        this.y = y;
+        this.width = 30;
+        this.height = 30;
+        this.image = new Image();
+        this.image.src = 'proxym.png';
+        this.vx = (Math.random() - 0.5) * 10; //10 is the scatter range
+        this.vy = -Math.random() * 10; //10 is the projectile speed
+        this.opacity = 1;
+        this.mode = mode;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.opacity = 1;
+      }
+
+      draw() {
+        ctx.globalAlpha = this.opacity;
+        ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    function spawnBall() {
+      const types = Object.keys(ballImages);
+      balls.push(new Ball(types[Math.floor(Math.random() * types.length)]));
+    }
+
+    function spawnParticles(mode) {
+      for (let i = 0; i < 10; i++) {
+        particles.push(new Particle(canvas.width / 2, canvas.height - 50, mode));
+      }
+    }
+
+    function checkCollision(particle, ball) {
+      const dx = particle.x - ball.x;
+      const dy = particle.y - ball.y;
+      return dx < ball.width / 1 && dx > -ball.width / 1 &&
+       dy < ball.height / 1 && dy > -ball.height / 1; // 1 changes the area of impact
+
+    }
+
+	function animate() {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		balls.forEach((ball, bi) => {
+		ball.update();
+		particles.forEach((particle, pi) => {
+			if (checkCollision(particle, ball)) {
+			if (particle.mode === 'Proxym') {
+			if (ball.type === 'Pain') ball.opacity = 0;
+				else {
+					ball.width *= 0.98;
+					ball.height *= 0.98;
+				}
+			} else if (particle.mode === 'Coxibs') {
+			if (ball.type === 'Pain') ball.opacity = 0;
+			else if (ball.type === 'Renal Risk') {
+				ball.width *= 0.98;
+				ball.height *= 0.98;
+			}
+			} else if (particle.mode === 'NSaids') {
+			if (ball.type === 'Pain') ball.opacity = 0;
+			}
+		}
+		});
+	});
+
+      balls.forEach((ball, i) => {
+        if (ball.opacity <= 0 || ball.y > canvas.height) balls.splice(i, 1);
+        else ball.draw();
+      });
+
+      particles.forEach((particle, i) => {
+        particle.update();
+        if (particle.opacity <= 0) particles.splice(i, 1);
+        else particle.draw();
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    setInterval(spawnBall, 500);
+    animate();
+
+    document.getElementById('proxym').addEventListener('click', () => spawnParticles('Proxym'));
+    document.getElementById('coxibs').addEventListener('click', () => spawnParticles('Coxibs'));
+    document.getElementById('nsaids').addEventListener('click', () => spawnParticles('NSaids'));
+  </script>
+</body>
+</html>
